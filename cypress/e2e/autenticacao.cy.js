@@ -45,8 +45,7 @@ describe("Testes de autenticação com usuário comum", () => {
     });
   });
 
-  // Mudar nome do teste
-  it("Autenticando usuário através do login", () => {
+  it("Autenticando usuário", () => {
     cy.request("POST", `/api/auth/login`, {
       email: emailUser,
       password: passwordUser,
