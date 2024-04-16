@@ -23,32 +23,32 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+const { fakerPT_BR } = require("@faker-js/faker");
 
-Cypress.Commands.add("cadastroLogin", (email, password, name) => {
+Cypress.Commands.add("cadastroLogin", () => {
+  let nameUser = fakerPT_BR.internet.userName();
+  let passwordUser = fakerPT_BR.internet.password(8);
+  let emailUser = fakerPT_BR.internet.email();
   let userId;
   let userToken;
 
   return cy
     .request({
       method: "POST",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users",
+      url: "/api/users",
       body: {
-        name: name,
-        email: email,
-        password: password,
+        name: nameUser,
+        email: emailUser,
+        password: passwordUser,
       },
     })
     .then((resposta) => {
       userId = resposta.body.id;
       return cy
-        .request(
-          "POST",
-          `https://raromdb-3c39614e42d4.herokuapp.com/api/auth/login`,
-          {
-            email: email,
-            password: password,
-          }
-        )
+        .request("POST", `/api/auth/login`, {
+          email: emailUser,
+          password: passwordUser,
+        })
         .then((resposta) => {
           userToken = resposta.body.accessToken;
 
@@ -58,4 +58,15 @@ Cypress.Commands.add("cadastroLogin", (email, password, name) => {
           };
         });
     });
+});
+
+Cypress.Commands.add("promoverParaAdmin", (userToken) => {
+  cy.log(userToken);
+  return cy.request({
+    method: "PATCH",
+    url: "/api/users/admin",
+    headers: {
+      Authorization: "Bearer " + userToken,
+    },
+  });
 });

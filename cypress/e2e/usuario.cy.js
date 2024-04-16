@@ -1,30 +1,29 @@
+const { fakerPT_BR } = require("@faker-js/faker");
+
 describe("Testes de API para criação de usuário", () => {
   let userId;
-  let userEmail = "marianachoratto22@gmail.com";
-  let userPassword = "123456";
+  let userEmail = fakerPT_BR.internet.email();
+  let userPassword = fakerPT_BR.internet.password(8);
+  let userName = fakerPT_BR.internet.userName();
   let userToken;
 
   after(() => {
-    cy.request(
-      "POST",
-      `https://raromdb-3c39614e42d4.herokuapp.com/api/auth/login`,
-      {
-        email: userEmail,
-        password: userPassword,
-      }
-    ).then((resposta) => {
+    cy.request("POST", `/api/auth/login`, {
+      email: userEmail,
+      password: userPassword,
+    }).then((resposta) => {
       userToken = resposta.body.accessToken;
 
       cy.request({
         method: "PATCH",
-        url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users/admin",
+        url: "/api/users/admin",
         headers: {
           Authorization: "Bearer " + userToken,
         },
       }).then((resposta) => {
         cy.request({
           method: "DELETE",
-          url: `https://raromdb-3c39614e42d4.herokuapp.com/api/users/${userId}`,
+          url: `/api/users/${userId}`,
           headers: {
             Authorization: "Bearer " + userToken,
           },
@@ -33,8 +32,8 @@ describe("Testes de API para criação de usuário", () => {
     });
   });
 
-  it("Criar um usuário", () => {
-    cy.request("POST", "https://raromdb-3c39614e42d4.herokuapp.com/api/users", {
+  it("Teste para criar um usuário", () => {
+    cy.request("POST", "/api/users", {
       name: "Mariana Choratto",
       email: userEmail,
       password: userPassword,
@@ -48,10 +47,10 @@ describe("Testes de API para criação de usuário", () => {
   it("Criar usuário com email inválido", () => {
     cy.request({
       method: "POST",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users",
+      url: "/api/users",
       failOnStatusCode: false,
       body: {
-        name: "Mariana Choratto",
+        name: userEmail,
         email: "marianagmail.com",
         password: userPassword,
       },
@@ -65,10 +64,10 @@ describe("Testes de API para criação de usuário", () => {
   it("Criar Usuário com senha muito curta", () => {
     cy.request({
       method: "POST",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users",
+      url: "/api/users",
       failOnStatusCode: false,
       body: {
-        name: "Mariana Choratto",
+        name: userName,
         email: userEmail,
         password: "12",
       },
@@ -83,10 +82,10 @@ describe("Testes de API para criação de usuário", () => {
   it("Criar usuario com senha muito longa", () => {
     cy.request({
       method: "POST",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users",
+      url: "/api/users",
       failOnStatusCode: false,
       body: {
-        name: "Mariana Choratto",
+        name: userName,
         email: userEmail,
         password: "12345678901112",
       },
@@ -96,6 +95,39 @@ describe("Testes de API para criação de usuário", () => {
       expect(resposta.body.message[0]).to.deep.equal(
         "password must be shorter than or equal to 12 characters"
       );
+    });
+  });
+
+  it("Encontrar usuário", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userId = resposta.id;
+      userToken = resposta.token;
+      cy.request({
+        method: "GET",
+        url: "/api/users/" + userId,
+        headers: {
+          Authorization: "Bearer " + userToken,
+        },
+      }).then((resposta) => {
+        expect(resposta.status).to.equal(200);
+      });
+    });
+  });
+
+  it("Não permitir que usuário comum tenha permissão de ver informações de outros os usuário", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      cy.request({
+        method: "GET",
+        url: "/api/users/",
+        headers: {
+          Authorization: "Bearer " + userToken,
+        },
+        failOnStatusCode: false,
+      }).then((resposta) => {
+        expect(resposta.status).to.equal(403);
+        expect(resposta.body.message).to.equal("Forbidden");
+      });
     });
   });
 });

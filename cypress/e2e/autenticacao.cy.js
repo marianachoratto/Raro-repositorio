@@ -10,7 +10,7 @@ describe("Testes de autenticação com usuário comum", () => {
   before(() => {
     cy.request({
       method: "POST",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users",
+      url: "/api/users",
       body: {
         name: nameUser,
         email: emailUser,
@@ -18,14 +18,10 @@ describe("Testes de autenticação com usuário comum", () => {
       },
     }).then((resposta) => {
       userId = resposta.body.id;
-      cy.request(
-        "POST",
-        `https://raromdb-3c39614e42d4.herokuapp.com/api/auth/login`,
-        {
-          email: emailUser,
-          password: passwordUser,
-        }
-      ).then((resposta) => {
+      cy.request("POST", `/api/auth/login`, {
+        email: emailUser,
+        password: passwordUser,
+      }).then((resposta) => {
         userToken = resposta.body.accessToken;
       });
     });
@@ -34,14 +30,14 @@ describe("Testes de autenticação com usuário comum", () => {
   after(() => {
     cy.request({
       method: "PATCH",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users/admin",
+      url: "/api/users/admin",
       headers: {
         Authorization: "Bearer " + userToken,
       },
     }).then(() => {
       cy.request({
         method: "DELETE",
-        url: `https://raromdb-3c39614e42d4.herokuapp.com/api/users/${userId}`,
+        url: `/api/users/${userId}`,
         headers: {
           Authorization: "Bearer " + userToken,
         },
@@ -51,14 +47,10 @@ describe("Testes de autenticação com usuário comum", () => {
 
   // Mudar nome do teste
   it("Autenticando usuário através do login", () => {
-    cy.request(
-      "POST",
-      `https://raromdb-3c39614e42d4.herokuapp.com/api/auth/login`,
-      {
-        email: emailUser,
-        password: passwordUser,
-      }
-    ).then((resposta) => {
+    cy.request("POST", `/api/auth/login`, {
+      email: emailUser,
+      password: passwordUser,
+    }).then((resposta) => {
       expect(resposta.status).to.equal(200);
     });
   });
@@ -66,7 +58,7 @@ describe("Testes de autenticação com usuário comum", () => {
   it("Não é possível fazer autenticação com o email incorreto", () => {
     cy.request({
       method: "POST",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/auth/login",
+      url: "/api/auth/login",
       body: {
         email: "emailAleatoriogmail.com",
         password: passwordUser,
@@ -87,7 +79,7 @@ describe("Testes de autenticação com usuário promovido", () => {
   before(() => {
     cy.request({
       method: "POST",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users",
+      url: "/api/users",
       body: {
         name: "Maria",
         email: emailUser,
@@ -95,14 +87,10 @@ describe("Testes de autenticação com usuário promovido", () => {
       },
     }).then((resposta) => {
       userId = resposta.body.id;
-      cy.request(
-        "POST",
-        `https://raromdb-3c39614e42d4.herokuapp.com/api/auth/login`,
-        {
-          email: emailUser,
-          password: passwordUser,
-        }
-      ).then((resposta) => {
+      cy.request("POST", `/api/auth/login`, {
+        email: emailUser,
+        password: passwordUser,
+      }).then((resposta) => {
         userToken = resposta.body.accessToken;
       });
     });
@@ -111,7 +99,7 @@ describe("Testes de autenticação com usuário promovido", () => {
   it("Não é possível promover usuário sem autorização", () => {
     cy.request({
       method: "PATCH",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users/admin",
+      url: "/api/users/admin",
       failOnStatusCode: false,
     }).then((resposta) => {
       expect(resposta.status).to.equal(401);
@@ -121,7 +109,7 @@ describe("Testes de autenticação com usuário promovido", () => {
   it("Não é possível fazer autenticação com o token errado (Autenticação 'bearer')", () => {
     cy.request({
       method: "PATCH",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users/admin",
+      url: "/api/users/admin",
       failOnStatusCode: false,
       headers: {
         Authorization: userToken,
@@ -134,7 +122,7 @@ describe("Testes de autenticação com usuário promovido", () => {
   it("Não é possível fazer autenticação com o token errado (numero errado)", () => {
     cy.request({
       method: "PATCH",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users/admin",
+      url: "/api/users/admin",
       failOnStatusCode: false,
       headers: {
         Authorization:
@@ -148,7 +136,7 @@ describe("Testes de autenticação com usuário promovido", () => {
   it("Não é possivel inativar usuário sem autorização", () => {
     cy.request({
       method: "PATCH",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users/inactivate",
+      url: "/api/users/inactivate",
       headers: {
         Authorization: "Bearer" + userToken,
       },
@@ -158,19 +146,17 @@ describe("Testes de autenticação com usuário promovido", () => {
     });
   });
 
-  // Fazer teste sobre a lista de filmes
-
   after(() => {
     cy.request({
       method: "PATCH",
-      url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users/admin",
+      url: "/api/users/admin",
       headers: {
         Authorization: "Bearer " + userToken,
       },
     }).then((resposta) => {
       cy.request({
         method: "DELETE",
-        url: `https://raromdb-3c39614e42d4.herokuapp.com/api/users/${userId}`,
+        url: `/api/users/${userId}`,
         headers: {
           Authorization: "Bearer " + userToken,
         },
