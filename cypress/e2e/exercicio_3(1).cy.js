@@ -56,4 +56,8 @@ describe("Teste sobre os filmes", () => {
   });
 
   it('Criar uma review nova de filme sem um atributo ("releaseYear")', () => {});
+
+  it("Deletar filmes sem o atributo X", () => {});
+
+  it("Consulta de filmes", () => {});
 });
