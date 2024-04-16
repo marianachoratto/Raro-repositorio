@@ -83,11 +83,9 @@ describe("Teste sobre os filmes", () => {
       userId = resposta.id;
 
       cy.promoverParaAdmin(userToken).then((resposta) => {
-        cy.log(idDoFilme);
-        cy.log(typeof idDoFilme);
         cy.request({
           method: "DELETE",
-          url: `/api/movies/${idDoFilme}`,
+          url: `/api/movies/${arrayNumber + 1}`,
           headers: {
             Authorization: "Bearer " + userToken,
           },
