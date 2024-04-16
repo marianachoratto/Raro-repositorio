@@ -3,6 +3,7 @@ const { fakerPT_BR } = require("@faker-js/faker");
 describe("Testes de autenticação com usuário comum", () => {
   let emailUser = fakerPT_BR.internet.email();
   let passwordUser = fakerPT_BR.internet.password(8);
+  let nameUser = fakerPT_BR.internet.userName();
   let userToken;
   let userId;
 
@@ -11,7 +12,7 @@ describe("Testes de autenticação com usuário comum", () => {
       method: "POST",
       url: "https://raromdb-3c39614e42d4.herokuapp.com/api/users",
       body: {
-        name: "Maria",
+        name: nameUser,
         email: emailUser,
         password: passwordUser,
       },
