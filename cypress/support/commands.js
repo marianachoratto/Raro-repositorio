@@ -57,7 +57,6 @@ Cypress.Commands.add("cadastroLogin", () => {
           return {
             token: userToken,
             id: userId,
-            // objetoComplerto: usuarioCriado,
           };
         });
     });
@@ -87,4 +86,37 @@ Cypress.Commands.add("listaDeTodosOsUsuarios", () => {
   cy.request("GET", "/users").then((response) => {
     return response.body;
   });
+});
+
+Cypress.Commands.add("criarFilme", (userToken) => {
+  let movieTitle = fakerPT_BR.internet.userName();
+  let movieGenre = fakerPT_BR.internet.password(8);
+  let movieDescription = fakerPT_BR.internet.email();
+  let movieId;
+  let tituloFilme;
+
+  return cy
+    .request({
+      method: "POST",
+      url: "/api/movies",
+      auth: {
+        bearer: userToken,
+      },
+      body: {
+        title: movieTitle,
+        genre: movieGenre,
+        description: movieDescription,
+        durationInMinutes: 100,
+        releaseYear: 2022,
+      },
+    })
+    .then((resposta) => {
+      movieId = resposta.body.id;
+      tituloFilme = resposta.body.title;
+
+      return {
+        id: movieId,
+        title: tituloFilme,
+      };
+    });
 });
