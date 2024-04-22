@@ -31,6 +31,7 @@ Cypress.Commands.add("cadastroLogin", () => {
   let emailUser = fakerPT_BR.internet.email();
   let userId;
   let userToken;
+  let usuarioCriado;
 
   return cy
     .request({
@@ -44,6 +45,7 @@ Cypress.Commands.add("cadastroLogin", () => {
     })
     .then((resposta) => {
       userId = resposta.body.id;
+      usuarioCriado = resposta;
       return cy
         .request("POST", `/api/auth/login`, {
           email: emailUser,
@@ -55,18 +57,34 @@ Cypress.Commands.add("cadastroLogin", () => {
           return {
             token: userToken,
             id: userId,
+            // objetoComplerto: usuarioCriado,
           };
         });
     });
 });
 
 Cypress.Commands.add("promoverParaAdmin", (userToken) => {
-  cy.log(userToken);
   return cy.request({
     method: "PATCH",
     url: "/api/users/admin",
     headers: {
       Authorization: "Bearer " + userToken,
     },
+  });
+});
+
+Cypress.Commands.add("deletarUsuário", (userId, userToken) => {
+  return cy.request({
+    method: "DELETE",
+    url: `/api/users/${userId}`,
+    headers: {
+      Authorization: "Bearer " + userToken,
+    },
+  });
+});
+
+Cypress.Commands.add("listaDeTodosOsUsuarios", () => {
+  cy.request("GET", "/users").then((response) => {
+    return response.body;
   });
 });
