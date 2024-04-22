@@ -5,6 +5,21 @@ describe("Teste sobre os filmes", () => {
   let arrayNumber;
   let userId;
   let fixtureDoFilme;
+  let movieId;
+
+  before(() => {});
+
+  after(() => {
+    cy.promoverParaAdmin(userToken).then(() => {
+      cy.request({
+        method: "DELETE",
+        url: `/api/movies/${movieId}`,
+        headers: {
+          Authorization: "Bearer " + userToken,
+        },
+      });
+    });
+  });
 
   it("Faz a listagem dos filmes", () => {
     cy.request({
@@ -19,7 +34,7 @@ describe("Teste sobre os filmes", () => {
     });
   });
 
-  it("Adicionar um novo filme", () => {
+  it("Deve adicionar um novo filme  e verificar se ele está na lista ", () => {
     cy.cadastroLogin().then((resposta) => {
       userId = resposta.id;
       userToken = resposta.token;
@@ -32,6 +47,8 @@ describe("Teste sobre os filmes", () => {
       }).then((resposta) => {
         cy.fixture("criandoUmFilme.json").then((arquivo) => {
           fixtureDoFilme = arquivo;
+          fixtureDoFilme.title = fakerPT_BR.internet.userName();
+          cy.log(fixtureDoFilme.title);
           cy.request({
             method: "POST",
             url: "/api/movies",
@@ -45,6 +62,13 @@ describe("Teste sobre os filmes", () => {
               method: "GET",
               url: "/api/movies",
             }).then((resposta) => {
+              resposta.body.forEach(function (item) {
+                if (item.title == fixtureDoFilme.title) {
+                  expect(item.title).to.equal(fixtureDoFilme.title);
+                  movieId = item.id;
+                }
+              });
+
               expect(resposta.body.length).to.equal(arrayNumber + 1);
             });
           });
@@ -74,9 +98,7 @@ describe("Teste sobre os filmes", () => {
     });
   });
 
-  it("Deve receber bad request ao criar filme sem ser administrador", () => {});
-
-  it("Consulta de filmes", () => {
+  it("Consulta de filmes pelo título", () => {
     cy.request({
       // GET não aceita body, ao invés disso usar o qs (atributo nativo do site)
       method: "GET",
@@ -90,9 +112,11 @@ describe("Teste sobre os filmes", () => {
     });
   });
 
-  it("Consultar filme pelo id", () => {});
-
   it("Deve conseguir alterar dados do filme", () => {});
+
+  it("Deve receber bad request ao criar filme sem ser administrador", () => {});
+
+  it("Consultar filme pelo id", () => {});
 
   it("Deletar filmes", () => {
     cy.cadastroLogin().then((resposta) => {
