@@ -195,7 +195,6 @@ describe("Testes de consulta de usuário", () => {
       expect(resposta.body.length).to.deep.equal(arrayNumber);
     });
   });
-  // Ver se o último usuário da lista foi colocado. Perguntar pra Luan sobre a viabilidade de pegar o objeto inteiro
 
   it("Não permitir que usuário comum tenha permissão de ver informações de outros os usuário", () => {
     // Tem que passar o login, pois nesta função em específico não tem promoção para admin
@@ -259,7 +258,6 @@ describe("Testes de atualização de cadastro", () => {
       });
   });
 
-  // falta criar variável para pegar objeto inteiro
   it("atualizar usuário com sucesso", () => {
     cy.fixture("atualizandoCadastro.json").then((arquivo) => {
       fixtureDoCadastro = arquivo;

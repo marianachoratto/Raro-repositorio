@@ -45,7 +45,6 @@ Cypress.Commands.add("cadastroLogin", () => {
     })
     .then((resposta) => {
       userId = resposta.body.id;
-      usuarioCriado = resposta;
       return cy
         .request("POST", `/api/auth/login`, {
           email: emailUser,

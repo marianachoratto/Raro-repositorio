@@ -95,6 +95,24 @@ describe("Testes de autenticação com usuário promovido", () => {
     });
   });
 
+  after(() => {
+    cy.request({
+      method: "PATCH",
+      url: "/api/users/admin",
+      headers: {
+        Authorization: "Bearer " + userToken,
+      },
+    }).then((resposta) => {
+      cy.request({
+        method: "DELETE",
+        url: `/api/users/${userId}`,
+        headers: {
+          Authorization: "Bearer " + userToken,
+        },
+      });
+    });
+  });
+
   it("Não é possível promover usuário sem autorização", () => {
     cy.request({
       method: "PATCH",
@@ -142,24 +160,6 @@ describe("Testes de autenticação com usuário promovido", () => {
       failOnStatusCode: false,
     }).then((resposta) => {
       expect(resposta.status).to.equal(401);
-    });
-  });
-
-  after(() => {
-    cy.request({
-      method: "PATCH",
-      url: "/api/users/admin",
-      headers: {
-        Authorization: "Bearer " + userToken,
-      },
-    }).then((resposta) => {
-      cy.request({
-        method: "DELETE",
-        url: `/api/users/${userId}`,
-        headers: {
-          Authorization: "Bearer " + userToken,
-        },
-      });
     });
   });
 });
