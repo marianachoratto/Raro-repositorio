@@ -235,6 +235,7 @@ describe("Consulta de filmes inválidas", () => {
     });
   });
 
+  // Bug: ver mais informações no arquivo de bugs
   it("consulta de filmes com titulo inexistente", () => {
     cy.request({
       method: "GET",
@@ -246,6 +247,7 @@ describe("Consulta de filmes inválidas", () => {
     });
   });
 
+  // Bug: ver mais informações no arquivo de bugs
   it("Consultar filme por id inexistente (com numeros)", () => {
     cy.request({
       method: "GET",
@@ -257,6 +259,7 @@ describe("Consulta de filmes inválidas", () => {
     });
   });
 
+  // Bug: ver mais informações no arquivo de bugs
   it("Consultar filme por id inexistente (com numeros negativos)", () => {
     cy.request({
       method: "GET",

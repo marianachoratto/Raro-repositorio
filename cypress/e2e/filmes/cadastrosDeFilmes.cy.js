@@ -165,7 +165,6 @@ describe("Teste de cadastros de filmes com bad requests", () => {
       userToken = resposta.token;
       userId = resposta.id;
       cy.promoverParaAdmin(userToken).then((resposta) => {
-        cy.log(userToken);
         cy.request({
           method: "POST",
           url: "/api/movies",
@@ -201,7 +200,6 @@ describe("Teste de cadastros de filmes com bad requests", () => {
       userToken = resposta.token;
       userId = resposta.id;
       cy.promoverParaAdmin(userToken).then((resposta) => {
-        cy.log(userToken);
         cy.request({
           method: "POST",
           url: "/api/movies",

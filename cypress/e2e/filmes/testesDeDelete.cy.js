@@ -95,6 +95,7 @@ describe("Teste de delete de filmes inválidos", () => {
     });
   });
 
+  // Bug: ver mais informações no arquivo de bugs
   it("Tentar deletar um filme com id inválido", () => {
     cy.promoverParaAdmin(userToken).then((resposta) => {
       cy.criarFilme(userToken)
