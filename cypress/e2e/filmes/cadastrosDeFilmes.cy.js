@@ -1,6 +1,6 @@
 const { fakerPT_BR } = require("@faker-js/faker");
 
-describe("Teste de cadastros de filmes", () => {
+describe("Teste de cadastros de filmes de sucesso", () => {
   let userToken;
   let userId;
   let fixtureDoFilme;
@@ -40,7 +40,7 @@ describe("Teste de cadastros de filmes", () => {
     });
   });
 
-  it("Deve adicionar um novo filme  e verificar se ele está na lista ", () => {
+  it("Deve adicionar um novo filme e verificar se ele está na lista ", () => {
     cy.cadastroLogin().then((resposta) => {
       userId = resposta.id;
       userToken = resposta.token;
@@ -89,30 +89,6 @@ describe("Teste de cadastros de filmes", () => {
     });
   });
 
-  it('Criar um novo filme sem um atributo ("releaseYear")', () => {
-    cy.cadastroLogin().then((resposta) => {
-      userToken = resposta.token;
-      userId = resposta.id;
-      cy.promoverParaAdmin(userToken).then((resposta) => {
-        cy.request({
-          method: "POST",
-          url: "/api/movies",
-          body: {
-            title: "O caminho para El Dourado",
-            genre: "Animação",
-            description: "qualquer coisa",
-            durationInMinutes: 127,
-          },
-          failOnStatusCode: false,
-        }).then((resposta) => {
-          expect(resposta.status).to.equal(401);
-          expect(resposta.body.error).to.equal("Unauthorized");
-          expect(resposta.body.message).to.equal("Access denied.");
-        });
-      });
-    });
-  });
-
   it("Deve conseguir alterar dados do filme", () => {
     cy.request({
       method: "PUT",
@@ -133,7 +109,7 @@ describe("Teste de cadastros de filmes", () => {
   });
 });
 
-describe("Testes com usuário comum", () => {
+describe("Teste de cadastros de filmes com bad requests", () => {
   let movieTitle = fakerPT_BR.internet.userName();
   let movieGenre = fakerPT_BR.internet.password(8);
   let movieDescription = fakerPT_BR.internet.email();
@@ -168,6 +144,130 @@ describe("Testes com usuário comum", () => {
       expect(resposta.body.message).to.equal("Forbidden");
 
       movieId = resposta.body.id;
+    });
+  });
+
+  it("Não deve criar um novo filme sem um nome (string vazia)", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          body: {
+            title: "",
+            genre: "Animação",
+            description: "qualquer coisa",
+            durationInMinutes: 127,
+            releaseYear: 2022,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(401);
+          expect(resposta.body.error).to.equal("Unauthorized");
+          expect(resposta.body.message).to.equal("Access denied.");
+        });
+      });
+    });
+  });
+
+  it("Não deve criar um novo filme sem um nome (null)", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          body: {
+            title: null,
+            genre: "Animação",
+            description: "qualquer coisa",
+            durationInMinutes: 127,
+            releaseYear: 2022,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(401);
+          expect(resposta.body.error).to.equal("Unauthorized");
+          expect(resposta.body.message).to.equal("Access denied.");
+        });
+      });
+    });
+  });
+
+  it('Criar um novo filme sem um atributo ("releaseYear")', () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          body: {
+            title: "O caminho para El Dourado",
+            genre: "Animação",
+            description: "qualquer coisa",
+            durationInMinutes: 127,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(401);
+          expect(resposta.body.error).to.equal("Unauthorized");
+          expect(resposta.body.message).to.equal("Access denied.");
+        });
+      });
+    });
+  });
+
+  it('Criar um novo filme sem um atributo ("genero")', () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          body: {
+            title: "O caminho para El Dourado",
+            genre: null,
+            description: "qualquer coisa",
+            durationInMinutes: 127,
+            releaseYear: 0,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(401);
+          expect(resposta.body.error).to.equal("Unauthorized");
+          expect(resposta.body.message).to.equal("Access denied.");
+        });
+      });
+    });
+  });
+
+  it("Criar um novo filme com release year sendo uma string", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          body: {
+            title: "O caminho para El Dourado",
+            genre: "Animação",
+            description: "qualquer coisa",
+            durationInMinutes: 127,
+            releaseYear: "0",
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(401);
+          expect(resposta.body.error).to.equal("Unauthorized");
+          expect(resposta.body.message).to.equal("Access denied.");
+        });
+      });
     });
   });
 
