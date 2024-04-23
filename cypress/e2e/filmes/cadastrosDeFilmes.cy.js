@@ -365,7 +365,7 @@ describe("Teste de cadastros de filmes com bad requests", () => {
             genre: null,
             description: "qualquer coisa",
             durationInMinutes: 127,
-            releaseYear: 0,
+            releaseYear: 1996,
           },
           failOnStatusCode: false,
         }).then((resposta) => {
@@ -394,19 +394,16 @@ describe("Teste de cadastros de filmes com bad requests", () => {
           },
           body: {
             title: "O caminho para El Dourado",
-            genre: null,
+            genre: "fantasia",
             description: "qualquer coisa",
             durationInMinutes: null,
-            releaseYear: 0,
+            releaseYear: 1996,
           },
           failOnStatusCode: false,
         }).then((resposta) => {
           expect(resposta.status).to.equal(400);
           expect(resposta.body.error).to.equal("Bad Request");
           expect(resposta.body.message).to.deep.equal([
-            "genre must be longer than or equal to 1 characters",
-            "genre must be a string",
-            "genre should not be empty",
             "durationInMinutes must be a number conforming to the specified constraints",
             "durationInMinutes should not be empty",
           ]);
@@ -431,7 +428,7 @@ describe("Teste de cadastros de filmes com bad requests", () => {
             genre: null,
             description: "qualquer coisa",
             durationInMinutes: "125",
-            releaseYear: 0,
+            releaseYear: 1996,
           },
           failOnStatusCode: false,
         }).then((resposta) => {
@@ -448,6 +445,7 @@ describe("Teste de cadastros de filmes com bad requests", () => {
     });
   });
 
+  // Bug: ver mais informações no arquivo de bugs
   it("Criar um novo filme com durationInMinutes como um numero negativo", () => {
     cy.cadastroLogin().then((resposta) => {
       userToken = resposta.token;
@@ -461,21 +459,51 @@ describe("Teste de cadastros de filmes com bad requests", () => {
           },
           body: {
             title: "O caminho para El Dourado",
-            genre: null,
+            genre: "fantasia",
             description: "qualquer coisa",
-            durationInMinutes: "125",
+            durationInMinutes: -125,
+            releaseYear: 1996,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(201);
+          expect(resposta.body.durationInMinutes).to.equal(-125);
+          expect(resposta.body.title).to.equal("O caminho para El Dourado");
+          expect(resposta.body.genre).to.equal("fantasia");
+          expect(resposta.body.description).to.equal("qualquer coisa");
+          expect(resposta.body.releaseYear).to.equal(1996);
+        });
+      });
+    });
+  });
+
+  // bug: ver mais informações no arquivo de bugs
+  it("Criar um novo filme com release year sendo 0", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: "O caminho para El Dourado",
+            genre: "fantasia",
+            description: "qualquer coisa",
+            durationInMinutes: 125,
             releaseYear: 0,
           },
           failOnStatusCode: false,
         }).then((resposta) => {
-          expect(resposta.status).to.equal(400);
-          expect(resposta.body.error).to.equal("Bad Request");
-          expect(resposta.body.message).to.deep.equal([
-            "genre must be longer than or equal to 1 characters",
-            "genre must be a string",
-            "genre should not be empty",
-            "durationInMinutes must be a number conforming to the specified constraints",
-          ]);
+          expect(resposta.status).to.equal(201);
+          expect(resposta.body.durationInMinutes).to.equal(125);
+          expect(resposta.body.title).to.equal("O caminho para El Dourado");
+          expect(resposta.body.genre).to.equal("fantasia");
+          expect(resposta.body.description).to.equal("qualquer coisa");
+          expect(resposta.body.releaseYear).to.equal(0);
         });
       });
     });

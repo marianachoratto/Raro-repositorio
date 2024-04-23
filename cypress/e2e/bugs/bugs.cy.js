@@ -112,3 +112,79 @@ describe("Bugs de delete", () => {
     });
   });
 });
+
+describe("Bugs de criação de filmes", () => {
+  let userToken;
+  let userId;
+
+  before(() => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+    });
+  });
+
+  //   Não é possível um filme ter uma duração negativa
+  it("Criar um novo filme com durationInMinutes como um numero negativo", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: "O caminho para El Dourado",
+            genre: "fantasia",
+            description: "qualquer coisa",
+            durationInMinutes: -125,
+            releaseYear: 1996,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(201);
+          expect(resposta.body.durationInMinutes).to.equal(-125);
+          expect(resposta.body.title).to.equal("O caminho para El Dourado");
+          expect(resposta.body.genre).to.equal("fantasia");
+          expect(resposta.body.description).to.equal("qualquer coisa");
+          expect(resposta.body.releaseYear).to.equal(1996);
+        });
+      });
+    });
+  });
+
+  //   Não é possível um filme ser criado no ano 0
+  it("Criar um novo filme com release year sendo 0", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: "O caminho para El Dourado",
+            genre: "fantasia",
+            description: "qualquer coisa",
+            durationInMinutes: 125,
+            releaseYear: 0,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(201);
+          expect(resposta.body.durationInMinutes).to.equal(125);
+          expect(resposta.body.title).to.equal("O caminho para El Dourado");
+          expect(resposta.body.genre).to.equal("fantasia");
+          expect(resposta.body.description).to.equal("qualquer coisa");
+          expect(resposta.body.releaseYear).to.equal(0);
+        });
+      });
+    });
+  });
+});
