@@ -2,12 +2,9 @@ const { fakerPT_BR } = require("@faker-js/faker");
 
 describe("Teste de reviews de usuário", () => {
   // Usuário, independente do tipo, pode criar uma review de um filme que esteja cadastrado.
-
   let userToken;
   let userId;
   let movieId;
-  let tituloFilme;
-  let idDaReview;
 
   // É necessário criar o filme para saber qual filme pegar
   before(() => {
@@ -17,9 +14,6 @@ describe("Teste de reviews de usuário", () => {
       cy.promoverParaAdmin(userToken).then((resposta) => {
         cy.criarFilme(userToken).then((resposta) => {
           movieId = resposta.id;
-          tituloFilme = resposta.title;
-
-          cy.log(movieId);
         });
       });
     });
@@ -62,7 +56,27 @@ describe("Teste de reviews de usuário", () => {
         },
       }).then((resposta) => {
         expect(resposta.status).to.equal(201);
-        cy.log(userToken);
+      });
+    });
+  });
+
+  it("usuario não logado não deve adicionar review do filme", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+
+      cy.request({
+        method: "POST",
+        url: "/api/users/review",
+        body: {
+          movieId: movieId,
+          score: 3,
+          reviewText: "Gostei muito do filme",
+        },
+        failOnStatusCode: false,
+      }).then((resposta) => {
+        expect(resposta.status).to.equal(401);
+        expect(resposta.body.error).to.equal("Unauthorized");
+        expect(resposta.body.message).to.equal("Access denied.");
       });
     });
   });

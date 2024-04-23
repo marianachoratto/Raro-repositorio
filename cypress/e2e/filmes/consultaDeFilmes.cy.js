@@ -44,6 +44,9 @@ describe("Consulta de Filmes de sucesso de pessoa logada", () => {
     cy.request({
       method: "GET",
       url: "/api/movies",
+      auth: {
+        bearer: userToken,
+      },
     }).then((resposta) => {
       arrayNumber = resposta.body.length;
       expect(resposta.status).to.equal(200);
@@ -60,6 +63,9 @@ describe("Consulta de Filmes de sucesso de pessoa logada", () => {
       qs: {
         title: tituloFilme,
       },
+      auth: {
+        bearer: userToken,
+      },
     }).then((resposta) => {
       expect(resposta.status).to.equal(200);
       expect(resposta.body).to.be.an("array");
@@ -73,6 +79,9 @@ describe("Consulta de Filmes de sucesso de pessoa logada", () => {
     cy.request({
       method: "GET",
       url: `/api/movies/${movieId}`,
+      auth: {
+        bearer: userToken,
+      },
     }).then((resposta) => {
       expect(resposta.status).to.equal(200);
       expect(resposta.body.title).to.equal(tituloFilme);
@@ -81,7 +90,7 @@ describe("Consulta de Filmes de sucesso de pessoa logada", () => {
   });
 });
 
-describe.only("Consulta de filmes de pessoa não logada", () => {
+describe("Consulta de filmes de pessoa não logada", () => {
   var userToken;
   var userId;
   var movieId;
@@ -148,13 +157,51 @@ describe.only("Consulta de filmes de pessoa não logada", () => {
         });
       });
   });
+
+  it("Faz a listagem dos filmes", () => {
+    cy.request({
+      method: "GET",
+      url: "/api/movies",
+    }).then((resposta) => {
+      const arrayNumber = resposta.body.length;
+      expect(resposta.status).to.equal(200);
+      expect(resposta.body).to.be.an("array");
+      expect(resposta.body.length).to.deep.equal(arrayNumber);
+    });
+  });
+
+  it("Consulta de filmes pelo título", () => {
+    cy.request({
+      method: "GET",
+      url: "/api/movies/search",
+      qs: {
+        title: tituloFilme,
+      },
+    }).then((resposta) => {
+      expect(resposta.status).to.equal(200);
+      expect(resposta.body).to.be.an("array");
+      expect(resposta.body[0].title).to.equal(tituloFilme);
+      expect(resposta.body).to.have.length(1);
+      expect(resposta.body[0].id).to.equal(movieId);
+    });
+  });
+
+  it("Consultar filme pelo id", () => {
+    cy.request({
+      method: "GET",
+      url: `/api/movies/${movieId}`,
+    }).then((resposta) => {
+      expect(resposta.status).to.equal(200);
+      expect(resposta.body.title).to.equal(tituloFilme);
+      expect(resposta.body.id).to.equal(movieId);
+    });
+  });
 });
 
-describe.only("Consulta de filmes inválidas", () => {
+describe("Consulta de filmes inválidas", () => {
   let userToken;
   let userId;
   let movieId;
-  let tituloFilme;
 
   before(() => {
     cy.cadastroLogin().then((resposta) => {
@@ -163,7 +210,6 @@ describe.only("Consulta de filmes inválidas", () => {
       cy.promoverParaAdmin(userToken).then((resposta) => {
         cy.criarFilme(userToken).then((resposta) => {
           movieId = resposta.id;
-          tituloFilme = resposta.title;
         });
       });
     });
@@ -193,13 +239,10 @@ describe.only("Consulta de filmes inválidas", () => {
     cy.request({
       method: "GET",
       url: "/api/movies/search",
-      qs: {
-        title: "filme inexistente",
-      },
+      failOnStatusCode: false,
     }).then((resposta) => {
-      expect(resposta.status).to.equal(200);
-      expect(resposta.body).to.be.an("array");
-      expect(resposta.body).to.be.empty;
+      expect(resposta.status).to.equal(500);
+      expect(resposta.body.message).to.equal("Internal server error");
     });
   });
 

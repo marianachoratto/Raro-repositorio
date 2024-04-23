@@ -5,7 +5,6 @@ describe("Teste de cadastros de filmes de sucesso", () => {
   let userId;
   let fixtureDoFilme;
   let movieId;
-  let tituloFilme;
 
   before(() => {
     cy.cadastroLogin().then((resposta) => {
@@ -14,7 +13,6 @@ describe("Teste de cadastros de filmes de sucesso", () => {
       cy.promoverParaAdmin(userToken).then((resposta) => {
         cy.criarFilme(userToken).then((resposta) => {
           movieId = resposta.id;
-          tituloFilme = resposta.title;
         });
       });
     });
@@ -107,9 +105,24 @@ describe("Teste de cadastros de filmes de sucesso", () => {
       expect(resposta.status).to.equal(204);
     });
   });
+
+  it("Checando se os dados foram alterados", () => {
+    cy.request({
+      method: "GET",
+      url: `/api/movies/${movieId}`,
+    }).then((resposta) => {
+      expect(resposta.body).to.deep.includes({
+        title: "Mudando Titulo1",
+        genre: "Mudando Genero1",
+        description: "qualquer coisa1",
+        durationInMinutes: 10,
+        releaseYear: 2024,
+      });
+    });
+  });
 });
 
-describe.only("Teste de cadastros de filmes com bad requests", () => {
+describe("Teste de cadastros de filmes com bad requests", () => {
   let movieTitle = fakerPT_BR.internet.userName();
   let movieGenre = fakerPT_BR.internet.password(8);
   let movieDescription = fakerPT_BR.internet.email();
@@ -144,6 +157,42 @@ describe.only("Teste de cadastros de filmes com bad requests", () => {
       expect(resposta.body.message).to.equal("Forbidden");
 
       movieId = resposta.body.id;
+    });
+  });
+
+  it("Não deve criar um novo filme sem passar body", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.log(userToken);
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "title must be longer than or equal to 1 characters",
+            "title must be a string",
+            "title should not be empty",
+            "genre must be longer than or equal to 1 characters",
+            "genre must be a string",
+            "genre should not be empty",
+            "description must be longer than or equal to 1 characters",
+            "description must be a string",
+            "description should not be empty",
+            "durationInMinutes must be a number conforming to the specified constraints",
+            "durationInMinutes should not be empty",
+            "releaseYear must be a number conforming to the specified constraints",
+            "releaseYear should not be empty",
+          ]);
+        });
+      });
     });
   });
 

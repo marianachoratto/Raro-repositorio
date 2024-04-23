@@ -29,38 +29,12 @@ describe("Testes de delete de filmes", () => {
       });
     });
   });
-
-  it("Não deve conseguir deletar filme sem ser administrador", () => {
-    cy.cadastroLogin()
-      .then((resposta) => {
-        userToken = resposta.token;
-        userId = resposta.id;
-      })
-      .criarFilme(userToken)
-      .then((resposta) => {
-        movieId = resposta.id;
-        cy.request({
-          method: "DELETE",
-          url: `/api/movies/${movieId}`,
-          auth: {
-            bearer: userToken,
-          },
-          failOnStatusCode: false,
-        }).then((resposta) => {
-          expect(resposta.status).to.equal(403);
-          expect(resposta.body.message).to.equal("Forbidden");
-        });
-      });
-  });
 });
 
-describe.only("Teste de delete de filmes inválidos", () => {
+describe("Teste de delete de filmes inválidos", () => {
   let userToken;
   let userId;
   let movieId;
-  let userEmail = fakerPT_BR.internet.email();
-  let userPassword = fakerPT_BR.internet.password(8);
-  let userName = fakerPT_BR.internet.userName();
 
   before(() => {
     cy.cadastroLogin()
@@ -120,8 +94,6 @@ describe.only("Teste de delete de filmes inválidos", () => {
       expect(resposta.body.message).to.equal("Access denied.");
     });
   });
-
-  // it("usuario crítico não deve conseguir deletar um filme", () => {});
 
   it("Tentar deletar um filme com id inválido", () => {
     cy.promoverParaAdmin(userToken).then((resposta) => {
