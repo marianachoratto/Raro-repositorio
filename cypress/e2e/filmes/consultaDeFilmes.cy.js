@@ -52,9 +52,11 @@ describe("Consulta de Filmes", () => {
     });
   });
 
+  // Criar uns erros aí
+
   it("Consulta de filmes pelo título", () => {
     cy.request({
-      // GET não aceita body, ao invés disso usar o qs (atributo nativo do site)
+      // GET não aceita body, ao invés disso usar o qs (atributo nativo do cypress)
       method: "GET",
       url: "/api/movies/search",
       qs: {
@@ -71,7 +73,6 @@ describe("Consulta de Filmes", () => {
 
   it("Consultar filme pelo id", () => {
     cy.request({
-      // GET não aceita body, ao invés disso usar o qs (atributo nativo do site)
       method: "GET",
       url: `/api/movies/${movieId}`,
     }).then((resposta) => {

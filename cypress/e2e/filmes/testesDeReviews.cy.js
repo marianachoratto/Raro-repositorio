@@ -61,9 +61,8 @@ describe("Teste de reviews de usuário", () => {
           reviewText: "Gostei muito do filme",
         },
       }).then((resposta) => {
-        idDaReview = resposta.body.id;
         expect(resposta.status).to.equal(201);
-        cy.log(idDaReview);
+        cy.log(userToken);
       });
     });
   });
@@ -141,6 +140,59 @@ describe("Teste de reviews de usuário", () => {
     });
   });
 
+  it("deve retornar bad request quando o id do filme for passado como string", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+
+      cy.request({
+        method: "POST",
+        url: "/api/users/review",
+        auth: {
+          bearer: userToken,
+        },
+        body: {
+          movieId: "Nome do Filme",
+          score: 5,
+          reviewText: "Gostei muito do filme",
+        },
+        failOnStatusCode: false,
+      }).then((resposta) => {
+        expect(resposta.status).to.equal(400);
+        expect(resposta.body.error).to.equal("Bad Request");
+        expect(resposta.body.message[0]).to.equal(
+          "movieId must be an integer number"
+        );
+      });
+    });
+  });
+
+  it("deve retornar bad request quando o id do filme for como null", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+
+      cy.request({
+        method: "POST",
+        url: "/api/users/review",
+        auth: {
+          bearer: userToken,
+        },
+        body: {
+          movieId: null,
+          score: 5,
+          reviewText: "Gostei muito do filme",
+        },
+        failOnStatusCode: false,
+      }).then((resposta) => {
+        expect(resposta.status).to.equal(400);
+        expect(resposta.body.error).to.equal("Bad Request");
+        expect(resposta.body.message).to.deep.equal([
+          "movieId must be an integer number",
+          "movieId should not be empty",
+        ]);
+      });
+    });
+  });
+
   it("deve retornar Movie Not Found quando o filme não existir", () => {
     cy.cadastroLogin().then((resposta) => {
       userToken = resposta.token;
@@ -167,26 +219,52 @@ describe("Teste de reviews de usuário", () => {
 
   it("Checar que a review criada existe", () => {
     cy.request({
-      method: "GET",
-      url: "/api/users/review/all",
+      method: "POST",
+      url: "/api/users/review",
       auth: {
         bearer: userToken,
       },
-    }).then((resposta) => {});
-  });
-
-  it("Lista todas as reviews feitas pelo usuario", () => {
-    cy.request({
-      method: "GET",
-      url: "/api/users/review/all",
-      auth: {
-        bearer: userToken,
+      body: {
+        movieId: movieId,
+        score: 3,
+        reviewText: "Gostei muito do filme",
       },
     }).then((resposta) => {
-      expect(resposta.status).to.equal(200);
-      // não está retornando nenhuma review
-      // expect(resposta.body).to.have.length(1);
-      // expect(resposta.body[0].title).to.equal(movieId);
+      cy.request({
+        method: "GET",
+        url: "/api/users/review/all",
+        auth: {
+          bearer: userToken,
+        },
+        body: {
+          movieId: movieId,
+          score: 3,
+          reviewText: "Gostei muito do filme",
+        },
+      }).then((resposta) => {
+        expect(resposta.status).to.equal(200);
+        expect(resposta.body.length).to.equal(1);
+        expect(resposta.body[0].id).to.be.an("number");
+        expect(resposta.body[0].score).to.equal(3);
+        expect(resposta.body[0].reviewText).to.equal("Gostei muito do filme");
+      });
+    });
+  });
+
+  it("Ao atualizar a review antiga deve ser criada uma nova", () => {
+    cy.request({
+      method: "POST",
+      url: "/api/users/review",
+      auth: {
+        bearer: userToken,
+      },
+      body: {
+        movieId: movieId,
+        score: 5,
+        reviewText: "criando uma review NOVA do filme",
+      },
+    }).then((resposta) => {
+      expect(resposta.status).to.equal(201);
     });
   });
 });
