@@ -109,7 +109,7 @@ describe("Teste de cadastros de filmes de sucesso", () => {
   });
 });
 
-describe("Teste de cadastros de filmes com bad requests", () => {
+describe.only("Teste de cadastros de filmes com bad requests", () => {
   let movieTitle = fakerPT_BR.internet.userName();
   let movieGenre = fakerPT_BR.internet.password(8);
   let movieDescription = fakerPT_BR.internet.email();
@@ -152,9 +152,13 @@ describe("Teste de cadastros de filmes com bad requests", () => {
       userToken = resposta.token;
       userId = resposta.id;
       cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.log(userToken);
         cy.request({
           method: "POST",
           url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
           body: {
             title: "",
             genre: "Animação",
@@ -164,9 +168,12 @@ describe("Teste de cadastros de filmes com bad requests", () => {
           },
           failOnStatusCode: false,
         }).then((resposta) => {
-          expect(resposta.status).to.equal(401);
-          expect(resposta.body.error).to.equal("Unauthorized");
-          expect(resposta.body.message).to.equal("Access denied.");
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "title must be longer than or equal to 1 characters",
+            "title should not be empty",
+          ]);
         });
       });
     });
@@ -180,6 +187,9 @@ describe("Teste de cadastros de filmes com bad requests", () => {
         cy.request({
           method: "POST",
           url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
           body: {
             title: null,
             genre: "Animação",
@@ -189,9 +199,44 @@ describe("Teste de cadastros de filmes com bad requests", () => {
           },
           failOnStatusCode: false,
         }).then((resposta) => {
-          expect(resposta.status).to.equal(401);
-          expect(resposta.body.error).to.equal("Unauthorized");
-          expect(resposta.body.message).to.equal("Access denied.");
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "title must be longer than or equal to 1 characters",
+            "title must be a string",
+            "title should not be empty",
+          ]);
+        });
+      });
+    });
+  });
+
+  it("Não deve criar um novo filme com título como número", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: 12345,
+            genre: "Animação",
+            description: "qualquer coisa",
+            durationInMinutes: 127,
+            releaseYear: 2022,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "title must be longer than or equal to 1 and shorter than or equal to 100 characters",
+            "title must be a string",
+          ]);
         });
       });
     });
@@ -205,6 +250,9 @@ describe("Teste de cadastros de filmes com bad requests", () => {
         cy.request({
           method: "POST",
           url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
           body: {
             title: "O caminho para El Dourado",
             genre: "Animação",
@@ -213,34 +261,12 @@ describe("Teste de cadastros de filmes com bad requests", () => {
           },
           failOnStatusCode: false,
         }).then((resposta) => {
-          expect(resposta.status).to.equal(401);
-          expect(resposta.body.error).to.equal("Unauthorized");
-          expect(resposta.body.message).to.equal("Access denied.");
-        });
-      });
-    });
-  });
-
-  it('Criar um novo filme sem um atributo ("genero")', () => {
-    cy.cadastroLogin().then((resposta) => {
-      userToken = resposta.token;
-      userId = resposta.id;
-      cy.promoverParaAdmin(userToken).then((resposta) => {
-        cy.request({
-          method: "POST",
-          url: "/api/movies",
-          body: {
-            title: "O caminho para El Dourado",
-            genre: null,
-            description: "qualquer coisa",
-            durationInMinutes: 127,
-            releaseYear: 0,
-          },
-          failOnStatusCode: false,
-        }).then((resposta) => {
-          expect(resposta.status).to.equal(401);
-          expect(resposta.body.error).to.equal("Unauthorized");
-          expect(resposta.body.message).to.equal("Access denied.");
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "releaseYear must be a number conforming to the specified constraints",
+            "releaseYear should not be empty",
+          ]);
         });
       });
     });
@@ -254,6 +280,9 @@ describe("Teste de cadastros de filmes com bad requests", () => {
         cy.request({
           method: "POST",
           url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
           body: {
             title: "O caminho para El Dourado",
             genre: "Animação",
@@ -263,9 +292,145 @@ describe("Teste de cadastros de filmes com bad requests", () => {
           },
           failOnStatusCode: false,
         }).then((resposta) => {
-          expect(resposta.status).to.equal(401);
-          expect(resposta.body.error).to.equal("Unauthorized");
-          expect(resposta.body.message).to.equal("Access denied.");
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "releaseYear must be a number conforming to the specified constraints",
+          ]);
+        });
+      });
+    });
+  });
+
+  it('Criar um novo filme sem um atributo ("genero")', () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: "O caminho para El Dourado",
+            genre: null,
+            description: "qualquer coisa",
+            durationInMinutes: 127,
+            releaseYear: 0,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "genre must be longer than or equal to 1 characters",
+            "genre must be a string",
+            "genre should not be empty",
+          ]);
+        });
+      });
+    });
+  });
+
+  it('Criar um novo filme sem um atributo ("durationInMinutes")', () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: "O caminho para El Dourado",
+            genre: null,
+            description: "qualquer coisa",
+            durationInMinutes: null,
+            releaseYear: 0,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "genre must be longer than or equal to 1 characters",
+            "genre must be a string",
+            "genre should not be empty",
+            "durationInMinutes must be a number conforming to the specified constraints",
+            "durationInMinutes should not be empty",
+          ]);
+        });
+      });
+    });
+  });
+
+  it("Criar um novo filme com durationInMinutes como string", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: "O caminho para El Dourado",
+            genre: null,
+            description: "qualquer coisa",
+            durationInMinutes: "125",
+            releaseYear: 0,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "genre must be longer than or equal to 1 characters",
+            "genre must be a string",
+            "genre should not be empty",
+            "durationInMinutes must be a number conforming to the specified constraints",
+          ]);
+        });
+      });
+    });
+  });
+
+  it("Criar um novo filme sem um atributo (description)", () => {
+    cy.cadastroLogin().then((resposta) => {
+      userToken = resposta.token;
+      userId = resposta.id;
+      cy.promoverParaAdmin(userToken).then((resposta) => {
+        cy.request({
+          method: "POST",
+          url: "/api/movies",
+          auth: {
+            bearer: userToken,
+          },
+          body: {
+            title: "O caminho para El Dourado",
+            genre: null,
+            durationInMinutes: "125",
+            releaseYear: 0,
+          },
+          failOnStatusCode: false,
+        }).then((resposta) => {
+          expect(resposta.status).to.equal(400);
+          expect(resposta.body.error).to.equal("Bad Request");
+          expect(resposta.body.message).to.deep.equal([
+            "genre must be longer than or equal to 1 characters",
+            "genre must be a string",
+            "genre should not be empty",
+            "description must be longer than or equal to 1 characters",
+            "description must be a string",
+            "description should not be empty",
+            "durationInMinutes must be a number conforming to the specified constraints",
+          ]);
         });
       });
     });
